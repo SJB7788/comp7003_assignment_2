@@ -24,19 +24,7 @@ def packet_callback(packet):
             print(f"\nCaptured Packet {packet_counter}:")
             raw_data = bytes(packet)
             hex_data = raw_data.hex()
-            protocol_type, payload = parse_ethernet_header(hex_data)
-            
-            if (protocol_type == 1):
-                parse_icmp_header(payload)
-            elif (protocol_type == 6):
-                parse_tcp_header(payload)
-            elif (protocol_type == 17):
-                parse_udp_header(payload)
-            elif (protocol_type == 53):
-                parse_dns_header(payload)
-            else:
-                print(f"  {'Unknown Protocol:':<25} {protocol_type:<20} | {protocol_type}")
-                print("  No parser available for this EtherType.")
+            parse_network_packet(hex_data)
 
             # Stop capturing if the limit is reached
             if packet_counter >= global_packet_limit:

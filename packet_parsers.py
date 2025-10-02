@@ -1,3 +1,40 @@
+# Parse network packet
+def parse_network_packet(hex_data):    
+    # L2
+    ether_type, l3_payload = parse_ethernet_header(hex_data)
+    
+    # L3
+    if ether_type == "0806":  # ARP
+        parse_arp_header(l3_payload)
+        return
+    elif ether_type == "0800": # IPv4
+        l4_protocol, l4_payload = parse_ipv4_header(l3_payload)
+    elif ether_type == "86DD": #IPv6
+        l4_protocol, l4_payload = parse_ipv6_header(l3_payload)
+    else:
+        print(f"  {'Unknown EtherType:':<25} {ether_type:<20} | {ether_type}")
+        print("  No parser available for this EtherType.")
+        return
+    
+    # L4
+    if (l4_protocol == 1): # ICMP
+        parse_icmp_header(l4_payload)
+    elif (l4_protocol == 58): #ICMPv6
+        parse_icmpv6_header(l4_payload)
+    elif (l4_protocol == 6): # TCP
+        src, dst, tcp_payload = parse_tcp_header(l4_payload)
+        if src == 53 or dst == 53: # DNS
+            parse_dns_header(tcp_payload)
+    elif (l4_protocol == 17): # UDP
+        src, dst, udp_payload = parse_udp_header(l4_payload)
+        if src == 53 or dst == 53: # DNS
+            parse_dns_header(udp_payload)
+    else:
+        print(f"  {'Unknown L4 protocol:':<25} {l4_protocol:<20} | {l4_protocol}")
+        print("  No parser available for this protocol.")
+        return
+
+
 # Parse Ethernet header
 def parse_ethernet_header(hex_data):
     dest_mac = ':'.join(hex_data[i:i+2] for i in range(0, 12, 2))
@@ -10,17 +47,6 @@ def parse_ethernet_header(hex_data):
     print(f"  {'EtherType:':<25} {ether_type:<20} | {int(ether_type, 16)}")
 
     payload = hex_data[28:]
-
-    # Route payload based on EtherType
-    if ether_type == "0806":  # ARP
-        ether_type, payload = parse_arp_header(payload)
-    elif ether_type == "0800": # IPv4
-        ether_type, payload = parse_ipv4_header(payload)
-    elif ether_type == "86DD": #IPv6
-        ether_type, payload = parse_ipv6_header(payload)
-    else:
-        print(f"  {'Unknown EtherType:':<25} {ether_type:<20} | {int(ether_type, 16)}")
-        print("  No parser available for this EtherType.")
 
     return ether_type, payload
 
@@ -218,7 +244,7 @@ def parse_tcp_header(hex_data):
     header_length_bytes = data_offset * 4
     header_length_hex = header_length_bytes * 2    
 
-    data_hex = hex_data[header_length_hex:]
+    payload_hex = hex_data[header_length_hex:]
     
     # print information
     print(f"TCP Header:")
@@ -241,7 +267,9 @@ def parse_tcp_header(hex_data):
     print(f"  {'Window Size:':<25} {window_size_hex:<20} | {window_size:<20}")
     print(f"  {'Checksum:':<25} {checksum_hex:<20} | {checksum:<20}")
     print(f"  {'Urget Pointer:':<25} {urgent_pointer_hex:<20} | {urgent_pointer:<20}")
-    print(f"  {'Payload:':<25} {data_hex}")
+    print(f"  {'Payload:':<25} {payload_hex}")
+    
+    return source_port, destin_port, payload_hex
 
 
 def parse_udp_header(hex_data):
@@ -263,6 +291,8 @@ def parse_udp_header(hex_data):
     print(f"  {'Length:':<25} {length_hex:<20} | {length}")
     print(f"  {'Checksum:':<25} {checksum_hex:<20} | {checksum}")
     print(f"  {'Payload:':<25} {payload_hex:<20}")
+    
+    return source_port, destin_port, payload_hex
 
 
 def parse_dns_header(hex_data):
