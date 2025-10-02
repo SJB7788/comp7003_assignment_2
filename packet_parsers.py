@@ -95,9 +95,7 @@ def parse_ipv4_header(hex_data):
     header_length_bytes = ihl * 4
     header_length_hex = header_length_bytes * 2
     
-    type_of_service = int(type_of_service_hex, 16)
     total_length = int(total_length_hex, 16)
-    identification = int(identification_hex, 16)
     
     fl_fr_off = int(flags_fragment_offset_hex, 16)
     flag = (fl_fr_off >> 13) & 0x7
@@ -106,7 +104,6 @@ def parse_ipv4_header(hex_data):
     mf = flag & 0x1
     fragment_offset = fl_fr_off & 0x1FFF
     
-    ttl = int(ttl_hex, 16)
     protocol = int(protocol_hex, 16)
     
     source_ip = convert_hex_to_ipv4(source_ip_hex)
@@ -130,7 +127,7 @@ def parse_ipv4_header(hex_data):
     
     return protocol, payload
     
-
+# Parse IPv6 header
 def parse_ipv6_header(hex_data):
     version_hex = hex_data[0:1]
     traffic_hex = hex_data[1:3]
@@ -168,6 +165,8 @@ def parse_ipv6_header(hex_data):
     
     return next_header, payload
 
+
+# Parse ICMP header
 def parse_icmp_header(hex_data):
     type_hex = hex_data[0:2]
     code_hex = hex_data[2:4]
@@ -186,6 +185,7 @@ def parse_icmp_header(hex_data):
     print(f"  {'Payload:':<25} {rest_of_header_hex:<20}")
     
     
+# Parse ICMPv6 header
 def parse_icmpv6_header(hex_data):
     type_hex = hex_data[0:2]
     code_hex = hex_data[2:4]
@@ -204,6 +204,7 @@ def parse_icmpv6_header(hex_data):
     print(f"  {'Payload:':<25} {rest_of_header_hex:<20}")
     
 
+# Parse TCP header
 def parse_tcp_header(hex_data):
     source_port_hex = hex_data[0:4]
     destination_port_hex = hex_data[4:8]
@@ -272,6 +273,7 @@ def parse_tcp_header(hex_data):
     return source_port, destin_port, payload_hex
 
 
+# Parse UDP header
 def parse_udp_header(hex_data):
     source_port_hex = hex_data[0:4]
     destination_port_hex = hex_data[4:8]
@@ -295,6 +297,7 @@ def parse_udp_header(hex_data):
     return source_port, destin_port, payload_hex
 
 
+# Parse DNS header
 def parse_dns_header(hex_data):
     transaction_id_hex = hex_data[0:4]
     flags_hex = hex_data[4:8]
